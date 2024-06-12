@@ -1,0 +1,30 @@
+# Base on offical Node.js Alpine image
+FROM --platform=linux/amd64 node:18-alpine
+
+RUN apk add --update python3 make g++ && rm -rf /var/cache/apk/*
+
+ENV NEXT_TELEMETRY_DISABLED 1
+
+ENV NODE_ENV production
+
+WORKDIR /app
+
+RUN npm install --global pm2
+
+COPY ./package*.json ./
+
+RUN npm install
+
+COPY . .
+
+RUN npm run build
+
+RUN mkdir -p /app/.next/cache/images
+
+RUN mkdir -p /app/.next/cache/images && chmod -R 777 /app/.next/cache/images
+
+EXPOSE 3000
+
+USER node
+
+CMD [ "pm2-runtime", "npm", "--", "start" ]
